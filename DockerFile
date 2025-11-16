@@ -1,7 +1,7 @@
 # Base PHP image
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies including Nginx
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,36 +9,41 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nodejs \
     npm \
+    nginx \
     && docker-php-ext-install pdo pdo_pgsql
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory to Laravel project root
+# Set working directory
 WORKDIR /var/www/html
 
 # Copy project files
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# Install dependencies
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 # Install NPM dependencies & build production assets
 RUN npm ci
-RUN npm run build -- --mode production
+RUN npm run build
 
-# Clear caches
-RUN php artisan config:clear \
-    && php artisan route:clear \
-    && php artisan view:clear \
-    && php artisan cache:clear
+# Clear caches and optimize
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
 
-# Set proper permissions for storage & bootstrap
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Set proper permissions
+RUN chown -R www-data:www-data storage bootstrap/cache public
+
+# Copy nginx config
+COPY nginx.conf /etc/nginx/sites-available/default
 
 # Expose port
 EXPOSE 8080
 
-# Use Nginx + PHP-FPM for production (recommended)
-# But for Railway free tier, we can use artisan serve:
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
+# Start script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
