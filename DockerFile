@@ -1,7 +1,7 @@
 # Base PHP image
 FROM php:8.2-fpm
 
-# Install system dependencies including Nginx
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,41 +9,39 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nodejs \
     npm \
-    nginx \
     && docker-php-ext-install pdo pdo_pgsql
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Set working directory to Laravel project root
 WORKDIR /var/www/html
 
 # Copy project files
 COPY . .
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-# Install NPM dependencies & build production assets
+# Install NPM dependencies
 RUN npm ci
+
+# Build production assets with explicit output
 RUN npm run build
 
-# Clear caches and optimize
+# Verify build output exists
+RUN ls -la public/build/ && cat public/build/manifest.json
+
+# Optimize Laravel
 RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
-# Set proper permissions
+# Set proper permissions for storage & bootstrap
 RUN chown -R www-data:www-data storage bootstrap/cache public
-
-# Copy nginx config
-COPY nginx.conf /etc/nginx/sites-available/default
 
 # Expose port
 EXPOSE 8080
 
-# Start script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-CMD ["/start.sh"]
+# Use artisan serve for Railway
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
