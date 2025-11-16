@@ -1,3 +1,4 @@
+# Base PHP image
 FROM php:8.2-fpm
 
 # Install system dependencies
@@ -13,20 +14,28 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Set working directory
 WORKDIR /var/www/html
 
 # Copy project files
 COPY . .
 
-# Install PHP Dependencies
+# Install PHP dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Install NPM dependencies and build assets
-RUN npm install && npm run build
+# Install NPM dependencies & build production assets
+RUN npm ci
+RUN npm run build -- --mode production
 
-# Storage permissions
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Clear caches and set permissions
+RUN php artisan config:clear \
+    && php artisan route:clear \
+    && php artisan view:clear \
+    && php artisan cache:clear \
+    && chown -R www-data:www-data storage bootstrap/cache
 
+# Expose port for Laravel server
 EXPOSE 8000
 
-CMD php artisan optimize && php artisan serve --host=0.0.0.0 --port=8000
+# Run migrations and start Laravel server
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
