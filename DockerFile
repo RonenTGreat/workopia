@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Set working directory to Laravel project root
 WORKDIR /var/www/html
 
 # Copy project files
@@ -27,15 +27,18 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 RUN npm ci
 RUN npm run build -- --mode production
 
-# Clear caches and set permissions
+# Clear caches
 RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear \
-    && php artisan cache:clear \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && php artisan cache:clear
 
-# Expose port for Laravel server
-EXPOSE 8000
+# Set proper permissions for storage & bootstrap
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Run migrations and start Laravel server
+# Expose port
+EXPOSE 8080
+
+# Use Nginx + PHP-FPM for production (recommended)
+# But for Railway free tier, we can use artisan serve:
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
