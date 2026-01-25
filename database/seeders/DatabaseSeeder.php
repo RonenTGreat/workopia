@@ -15,10 +15,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
         DB::table('job_listings')->truncate();
         DB::table('users')->truncate();
         DB::table('job_user_bookmarks')->truncate();
         DB::table('applicants')->truncate();
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $this->call(TestUserSeeder::class);
         $this->call(RandomUserSeeder::class);
