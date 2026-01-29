@@ -1,14 +1,36 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/index.php": {
-      "runtime": "vercel-php@0.8.0"
+    "version": 2,
+      "framework": null,
+    "functions": {
+        "api/index.php": { "runtime": "vercel-php@0.7.4" }
+    },
+    "routes": [{
+        "src": "/(.*)",
+        "dest": "/api/index.php"
+    }],
+    "env": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "true",
+        "APP_URL": "https://yourprojectdomain.com",
+        "APP_KEY": "base64:t4szGuGK3p4hWsOwhkKFyIyw3Fi97ps+cbBFn4ruhK4=",
+        "DATABASE_URL": "postgresql://neondb_owner:npg_xXyQ6B9nVDHZ@ep-raspy-math-ah83uhb0-pooler.c-3.us-east-1.aws.neon.tech:5432/neondb?sslmode=require&options=endpoint=ep-raspy-math-ah83uhb0",
+
+        "APP_CONFIG_CACHE": "/tmp/config.php",
+        "APP_EVENTS_CACHE": "/tmp/events.php",
+        "APP_PACKAGES_CACHE": "/tmp/packages.php",
+        "APP_ROUTES_CACHE": "/tmp/routes.php",
+        "APP_SERVICES_CACHE": "/tmp/services.php",
+        "VIEW_COMPILED_PATH": "/tmp",
+
+        "CACHE_DRIVER": "array",
+        "LOG_CHANNEL": "stderr",
+        "SESSION_DRIVER": "cookie",
+        "MAIL_MAILER": "smtp",
+        "MAIL_HOST": "sandbox.smtp.mailtrap.io",
+        "MAIL_PORT": "2525",
+        "MAIL_USERNAME": "9733d21c8709c3",
+        "MAIL_PASSWORD": "64e3426192a8a2",
+        "MAIL_FROM_ADDRESS": "noreply@workopia.com",
+        "MAIL_FROM_NAME": "Workopia"
     }
-  },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.php"
-    }
-  ]
 }
