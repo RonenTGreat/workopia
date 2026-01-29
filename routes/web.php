@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\ApplicantController;
 use App\Http\Controllers\GeocodeController;
+use Illuminate\Support\Facades\Artisan;
 
 
 
@@ -43,3 +44,8 @@ Route::post('/jobs/{job}/apply', [ApplicantController::class, 'store'])->name('a
 Route::delete('/applicants/{applicant}', [ApplicantController::class, 'destroy'])->name('applicant.destroy')->middleware('auth');
 
 Route::get('/geocode', [GeocodeController::class, 'geocode']);
+
+Route::get('/deploy-db', function() {
+    Artisan::call('migrate', ['--force' => true]);
+    return "Migrations complete!";
+});
